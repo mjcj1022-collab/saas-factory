@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: saas_factory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - media:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=dev-secret-change-me
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saas_factory
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build: .
+    command: celery -A config worker -l INFO -c 4
+    volumes:
+      - .:/app
+      - media:/app/media
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=dev-secret-change-me
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saas_factory
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A config beat -l INFO
+    volumes:
+      - .:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/saas_factory
+    depends_on:
+      - redis
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  media:
