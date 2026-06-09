@@ -5,7 +5,15 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/auth/", include("rest_framework.urls")),
+    # Auth
+    path("api/auth/", include("core.organizations.urls")),
+    path("api/drf-auth/", include("rest_framework.urls")),
+    # Platform
+    path("api/platform/events/", include("core.events.urls")),
+    path("api/platform/workflows/", include("core.workflows.urls")),
+    path("api/platform/billing/", include("core.billing.urls")),
+    path("api/platform/notifications/", include("core.notifications.urls")),
+    # Vertical apps
     path("api/rfp/", include("apps.rfp.urls")),
     path("api/construction/", include("apps.construction.urls")),
     path("api/franchise/", include("apps.franchise.urls")),
@@ -16,8 +24,4 @@ urlpatterns = [
     path("api/sourcing/", include("apps.sourcing.urls")),
     path("api/agency/", include("apps.agency.urls")),
     path("api/food/", include("apps.food.urls")),
-    path("api/platform/events/", include("core.events.urls")),
-    path("api/platform/workflows/", include("core.workflows.urls")),
-    path("api/platform/billing/", include("core.billing.urls")),
-    path("api/platform/notifications/", include("core.notifications.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

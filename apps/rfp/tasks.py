@@ -76,3 +76,26 @@ def export_rfp_task(rfp_id: str, format: str = "docx"):
     rfp = RFPRequest.objects.get(id=rfp_id)
     # Document generation plugs into platform.documents engine
     logger.info("Exporting RFP %s as %s", rfp_id, format)
+
+
+@shared_task(bind=True, max_retries=3)
+def create_embeddings_task(self, document_id: str):
+    """Generate embeddings for a knowledge document."""
+    try:
+        from apps.rfp.models import KnowledgeDocument, KnowledgeChunk
+        doc = KnowledgeDocument.objects.get(id=document_id)
+        # Split content into chunks of ~500 words
+        words = doc.content.split()
+        chunk_size = 500
+        for i, start in enumerate(range(0, len(words), chunk_size)):
+            chunk_text = " ".join(words[start:start + chunk_size])
+            if chunk_text:
+                KnowledgeChunk.objects.create(
+                    document=doc,
+                    chunk_text=chunk_text,
+                    sequence=i,
+                )
+        logger.info("Created chunks for document %s", document_id)
+    except Exception as exc:
+        logger.exception("create_embeddings_task failed: %s", exc)
+        raise self.retry(exc=exc, countdown=30)

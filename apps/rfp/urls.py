@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-# from .views import *  # uncomment after adding viewsets
+from .views import KnowledgeDocumentViewSet, RFPRequestViewSet, GeneratedResponseViewSet
 
 router = DefaultRouter()
-# router.register("...", SomeViewSet)
+router.register("knowledge", KnowledgeDocumentViewSet, basename="knowledge")
+router.register("requests", RFPRequestViewSet, basename="rfp")
+router.register("responses", GeneratedResponseViewSet, basename="rfp-response")
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = [path("", include(router.urls))]
