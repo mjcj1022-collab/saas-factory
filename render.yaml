@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: saas-factory-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saas-factory-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: saas-factory-redis
+          type: redis
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,.railway.app,localhost"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+    healthCheckPath: /api/auth/login/
+    autoDeploy: true
+
+  - type: worker
+    name: saas-factory-celery
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    startCommand: celery -A config worker -l INFO -c 4
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saas-factory-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: saas-factory-redis
+          type: redis
+          property: connectionString
+      - key: SECRET_KEY
+        fromService:
+          name: saas-factory-api
+          type: web
+          envVarKey: SECRET_KEY
+
+databases:
+  - name: saas-factory-db
+    plan: free
+
+  - name: saas-factory-redis
+    type: redis
+    plan: free

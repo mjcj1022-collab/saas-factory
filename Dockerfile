@@ -5,8 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
-    gdal-bin \
-    libgdal-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -14,8 +13,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput || true
+# Collect static files (won't fail if DB not connected)
+RUN python manage.py collectstatic --noinput \
+    --settings=config.settings_prod 2>/dev/null || true
 
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
+# Startup: migrate → create admin → serve
+CMD ["sh", "-c", \
+    "python manage.py migrate --noinput && \
+     python manage.py create_admin && \
+     gunicorn config.wsgi:application \
+       --bind 0.0.0.0:${PORT:-8000} \
+       --workers 4 \
+       --timeout 120 \
+       --access-logfile -"]
