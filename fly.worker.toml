@@ -1,0 +1,18 @@
+app = "saas-factory-celery"
+primary_region = "dfw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DJANGO_SETTINGS_MODULE = "config.settings_prod"
+  DEBUG = "False"
+
+# No HTTP service — this is a background worker
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[processes]
+  worker = "celery -A config worker -l INFO -c 2"

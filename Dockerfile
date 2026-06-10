@@ -13,18 +13,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Collect static files (won't fail if DB not connected)
+# Collect static — ignore errors if DB not connected at build time
 RUN python manage.py collectstatic --noinput \
     --settings=config.settings_prod 2>/dev/null || true
 
 EXPOSE 8000
 
-# Startup: migrate → create admin → serve
 CMD ["sh", "-c", \
     "python manage.py migrate --noinput && \
      python manage.py create_admin && \
      gunicorn config.wsgi:application \
        --bind 0.0.0.0:${PORT:-8000} \
-       --workers 4 \
+       --workers 2 \
        --timeout 120 \
        --access-logfile -"]
