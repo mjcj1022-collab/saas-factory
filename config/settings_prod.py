@@ -12,7 +12,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
-    ".railway.app,.onrender.com,.vercel.app,localhost"
+    ".up.railway.app,.railway.app,.onrender.com,.vercel.app,localhost"
 ).split(",")
 
 CSRF_TRUSTED_ORIGINS = [
