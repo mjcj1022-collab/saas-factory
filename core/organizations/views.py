@@ -1,4 +1,4 @@
-from rest_framework import viewsets, generics, status, permissions
+from rest_framework import viewsets, generics, status, permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -59,7 +59,13 @@ class RegisterView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+
 class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
