@@ -20,7 +20,7 @@ services:
           type: redis
           property: connectionString
       - key: ALLOWED_HOSTS
-        value: ".onrender.com,.railway.app,localhost"
+        value: ".onrender.com,localhost"
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
@@ -29,8 +29,12 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
-    healthCheckPath: /api/auth/login/
-    autoDeploy: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+    healthCheckPath: /health/
+    autoDeploy: false
 
   - type: worker
     name: saas-factory-celery
@@ -55,10 +59,11 @@ services:
           type: web
           envVarKey: SECRET_KEY
 
+  - type: redis
+    name: saas-factory-redis
+    plan: free
+    ipAllowList: []
+
 databases:
   - name: saas-factory-db
-    plan: free
-
-  - name: saas-factory-redis
-    type: redis
     plan: free
