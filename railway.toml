@@ -2,16 +2,7 @@
   dockerfile = "Dockerfile"
 
 [deploy]
-  # Railway runs this BEFORE the healthcheck, as a one-off process
-  # This lets gunicorn start immediately after migrations complete
-  startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120 --access-logfile -"
   healthcheckPath = "/health/"
   healthcheckTimeout = 300
   restartPolicyType = "ON_FAILURE"
   restartPolicyMaxRetries = 3
-
-# Release phase runs migrate + create_admin before traffic switches over
-[[scripts]]
-  name = "migrate"
-  command = "python manage.py migrate --noinput && python manage.py create_admin"
-  order = "before"

@@ -13,17 +13,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Collect static — ignore errors if DB not connected at build time
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
+
+# Collect static — won't fail if DB not connected
 RUN python manage.py collectstatic --noinput \
     --settings=config.settings_prod 2>/dev/null || true
 
 EXPOSE 8000
 
-CMD ["sh", "-c", \
-    "python manage.py migrate --noinput && \
-     python manage.py create_admin && \
-     gunicorn config.wsgi:application \
-       --bind 0.0.0.0:${PORT:-8000} \
-       --workers 2 \
-       --timeout 120 \
-       --access-logfile -"]
+# Use --preload so gunicorn starts listening BEFORE workers fully init
+# This allows healthcheck to pass while migrations run in foreground first
+ENTRYPOINT ["./entrypoint.sh"]
