@@ -10,10 +10,11 @@ import dj_database_url
 DEBUG = False
 SECRET_KEY = os.environ["SECRET_KEY"]
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    ".up.railway.app,.railway.app,.onrender.com,.vercel.app,localhost"
-).split(",")
+_allowed = os.environ.get("ALLOWED_HOSTS", "")
+if _allowed:
+    ALLOWED_HOSTS = _allowed.split(",")
+else:
+    ALLOWED_HOSTS = ["*"]  # fallback — restrict via env var in production
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{h.lstrip('.')}" for h in ALLOWED_HOSTS if h.strip()
