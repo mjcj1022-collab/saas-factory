@@ -53,6 +53,8 @@ MIDDLEWARE = [
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = BASE_DIR / "staticfiles"  # type: ignore  # noqa
 
+# ── CORS headers app (must be in INSTALLED_APPS from base settings)
+# corsheaders is already in base INSTALLED_APPS
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = os.environ.get(
